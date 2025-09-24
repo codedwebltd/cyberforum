@@ -1,0 +1,47 @@
+[21-Sep-2025 12:44:23 UTC] PHP Warning:  copy(): https:// wrapper is disabled in the server configuration by allow_url_fopen=0 in Command line code on line 1
+[21-Sep-2025 12:44:23 UTC] PHP Warning:  copy(https://getcomposer.org/installer): Failed to open stream: no suitable wrapper could be found in Command line code on line 1
+[21-Sep-2025 12:44:36 UTC] PHP Warning:  hash_file(composer-setup.php): Failed to open stream: No such file or directory in Command line code on line 1
+[21-Sep-2025 12:44:36 UTC] PHP Warning:  file_get_contents(): https:// wrapper is disabled in the server configuration by allow_url_fopen=0 in Command line code on line 1
+[21-Sep-2025 12:44:36 UTC] PHP Warning:  file_get_contents(https://composer.github.io/installer.sig): Failed to open stream: no suitable wrapper could be found in Command line code on line 1
+[21-Sep-2025 12:45:34 UTC] PHP Warning:  copy(): https:// wrapper is disabled in the server configuration by allow_url_fopen=0 in Command line code on line 1
+[21-Sep-2025 12:45:34 UTC] PHP Warning:  copy(https://getcomposer.org/installer): Failed to open stream: no suitable wrapper could be found in Command line code on line 1
+[21-Sep-2025 12:46:05 UTC] PHP Warning:  copy(): https:// wrapper is disabled in the server configuration by allow_url_fopen=0 in Command line code on line 1
+[21-Sep-2025 12:46:05 UTC] PHP Warning:  copy(https://getcomposer.org/installer): Failed to open stream: no suitable wrapper could be found in Command line code on line 1
+[21-Sep-2025 20:39:14 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/palestine/public_html/app/Providers/AppServiceProvider.php on line 4
+[21-Sep-2025 20:39:14 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/palestine/public_html/app/Providers/AppServiceProvider.php on line 4
+[21-Sep-2025 20:40:14 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/palestine/public_html/app/Traits/OnboardingTrait.php on line 4
+[21-Sep-2025 20:40:14 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/palestine/public_html/app/Traits/OnboardingTrait.php on line 4
+[21-Sep-2025 20:41:14 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/palestine/public_html/app/Traits/OnboardingTrait.php on line 4
+[21-Sep-2025 20:41:14 UTC] PHP Fatal error:  Namespace declaration statement has to be the very first statement or after any declare call in the script in /home/palestine/public_html/app/Traits/OnboardingTrait.php on line 4
+[22-Sep-2025 12:17:41 UTC] PHP Fatal error:  During class fetch: Uncaught ParseError: syntax error, unexpected variable "$total_points" in /home/palestine/public_html/app/Traits/OnboardingTrait.php:13
+Stack trace:
+#0 /home/palestine/public_html/vendor/composer/ClassLoader.php(427): Composer\Autoload\{closure}('/home/palestine...')
+#1 /home/palestine/public_html/app/Providers/AppServiceProvider.php(14): Composer\Autoload\ClassLoader->loadClass('App\\Traits\\Onbo...')
+#2 /home/palestine/public_html/vendor/composer/ClassLoader.php(576): include('/home/palestine...')
+#3 /home/palestine/public_html/vendor/composer/ClassLoader.php(427): Composer\Autoload\{closure}('/home/palestine...')
+#4 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(880): Composer\Autoload\ClassLoader->loadClass('App\\Providers\\A...')
+#5 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(814): Illuminate\Foundation\Application->resolveProvider('App\\Providers\\A...')
+#6 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/ProviderRepository.php(75): Illuminate\Foundation\Application->register('App\\Providers\\A...')
+#7 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(794): Illuminate\Foundation\ProviderRepository->load(Array)
+#8 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/RegisterProviders.php(17): Illuminate\Foundation\Application->registerConfiguredProviders()
+#9 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(286): Illuminate\Foundation\Bootstrap\RegisterProviders->bootstrap(Object(Illuminate\Foundation\Application))
+#10 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(447): Illuminate\Foundation\Application->bootstrapWith(Array)
+#11 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(199): Illuminate\Foundation\Console\Kernel->bootstrap()
+#12 Command line code(1): Illuminate\Foundation\Console\Kernel->handle(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#13 {main} in /home/palestine/public_html/app/Providers/AppServiceProvider.php on line 14
+[22-Sep-2025 12:17:41 UTC] PHP Fatal error:  During class fetch: Uncaught ParseError: syntax error, unexpected variable "$total_points" in /home/palestine/public_html/app/Traits/OnboardingTrait.php:13
+Stack trace:
+#0 /home/palestine/public_html/vendor/composer/ClassLoader.php(427): Composer\Autoload\{closure}('/home/palestine...')
+#1 /home/palestine/public_html/app/Providers/AppServiceProvider.php(14): Composer\Autoload\ClassLoader->loadClass('App\\Traits\\Onbo...')
+#2 /home/palestine/public_html/vendor/composer/ClassLoader.php(576): include('/home/palestine...')
+#3 /home/palestine/public_html/vendor/composer/ClassLoader.php(427): Composer\Autoload\{closure}('/home/palestine...')
+#4 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(880): Composer\Autoload\ClassLoader->loadClass('App\\Providers\\A...')
+#5 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(814): Illuminate\Foundation\Application->resolveProvider('App\\Providers\\A...')
+#6 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/ProviderRepository.php(75): Illuminate\Foundation\Application->register('App\\Providers\\A...')
+#7 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(794): Illuminate\Foundation\ProviderRepository->load(Array)
+#8 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Bootstrap/RegisterProviders.php(17): Illuminate\Foundation\Application->registerConfiguredProviders()
+#9 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Application.php(286): Illuminate\Foundation\Bootstrap\RegisterProviders->bootstrap(Object(Illuminate\Foundation\Application))
+#10 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(447): Illuminate\Foundation\Application->bootstrapWith(Array)
+#11 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(199): Illuminate\Foundation\Console\Kernel->bootstrap()
+#12 Command line code(1): Illuminate\Foundation\Console\Kernel->handle(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
+#13 {main} in /home/palestine/public_html/app/Providers/AppServiceProvider.php on line 14
