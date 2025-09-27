@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Discussion;
 
 use Carbon\Carbon;
+use App\Models\Tag;
 use App\Models\Like;
 use App\Models\Post;
 use App\Models\User;
@@ -16,24 +17,32 @@ use App\Jobs\DiscussionNotificationJob;
 
 class DiscussionController extends Controller
 {
-    public function index(Request $request)
-    {
-        $discussions = $this->discussions($request);
-        return view('home.discussions.index', compact('discussions'));
-    }
-
+public function index(Request $request)
+{
+    $discussions = $this->discussionMain($request); // Use the new method
+    $popularTags = $this->getPopularTags();
+    
+    $currentFilters = [
+        'search' => $request->search,
+        'type' => $request->type,
+        'filter' => $request->filter ?? 'latest',
+        'tag' => $request->tag
+    ];
+    
+    return view('home.discussions.index', compact('discussions', 'currentFilters', 'popularTags'));
+}
 public function discussions(Request $request)
 {
     $query = Post::with(['user'])
-        ->where('type', 'discussion')
+        //->where('type', 'discussion')
         ->where('status', 'published')
         ->where('is_approved', true);
 
-    // Filter by category/type if provided codedweb
+    //Filter by category/type if provided codedweb
     if ($request->has('filter')) {
         $filter = $request->filter;
         switch ($filter) {
-            case 'trending':
+            case 'trending':                                                            
                 $query->where('created_at', '>=', now()->subDays(7))
                       ->orderByRaw('(likes_count + comments_count + views_count) DESC');
                 break;
@@ -51,7 +60,7 @@ public function discussions(Request $request)
               ->orderBy('last_activity_at', 'desc');
     }
 
-    $discussions = $query->paginate(2);
+    $discussions = $query->paginate(5);
 
     // Check which discussions the user has liked
     if (auth()->check()) {
@@ -71,13 +80,17 @@ public function discussions(Request $request)
 
    public function show($slug)
 {
-    $discussion = Post::with(['user'])
+    
+    $discussion = Post::with(['user', 'tags'])
         ->where('slug', $slug)
-        ->where('type', 'discussion')
+        //->where('type', 'discussion')
         ->where('status', 'published')
         ->where('is_approved', true)
-        ->firstOrFail();
+        ->first();
 
+        if(!$discussion){
+            return redirect()->back()->with('error', 'Discussion not found or not published.');
+        }
     // Increment view count
     $discussion->increment('views_count');
     $discussion->update(['last_activity_at' => now()]);
@@ -99,7 +112,7 @@ public function discussions(Request $request)
         
         $comment->total_replies = $comment->replies()->count();
         $comment->has_more_replies = $comment->total_replies > 3;
-        
+     
         // Check if user has liked this comment
         if (auth()->check()) {
             $comment->is_liked_by_user = Like::where('user_id', auth()->id())
@@ -587,4 +600,78 @@ public function storeReplyForShow(Request $request, $slug)
     ]);
 }
 
+
+//DISCUSSION MAIN
+// Add these two methods to your existing DiscussionController
+
+private function discussionMain(Request $request)
+{
+    $query = Post::where('type', 'discussion')
+        ->where('status', 'published')
+        ->where('is_approved', true)
+        ->with(['user', 'tags']);
+
+    // Search
+    if ($request->filled('search')) {
+        $search = $request->search;
+        $query->where(function($q) use ($search) {
+            $q->where('title', 'like', "%{$search}%")
+              ->orWhere('content', 'like', "%{$search}%");
+        });
+    }
+
+    // Filter by type
+    if ($request->filled('type') && $request->type !== 'all') {
+        $query->where('discussion_type', $request->type);
+    }
+
+    // Tag filtering
+    if ($request->filled('tag')) {
+        $query->whereHas('tags', function($q) use ($request) {
+            $q->where('slug', $request->tag)->orWhere('name', $request->tag);
+        });
+    }
+
+    // Sorting
+    $filter = $request->filter ?? 'latest';
+    switch ($filter) {
+        case 'trending':
+            $query->where('created_at', '>=', now()->subDays(7))
+                  ->orderByRaw('(likes_count + comments_count * 2) DESC');
+            break;
+        case 'hot':
+            $query->orderByRaw('(likes_count * 2 + comments_count * 3) DESC');
+            break;
+        case 'most_liked':
+            $query->orderBy('likes_count', 'desc');
+            break;
+        case 'most_commented':
+            $query->orderBy('comments_count', 'desc');
+            break;
+        default:
+            $query->orderBy('is_pinned', 'desc')->orderBy('created_at', 'desc');
+    }
+
+    return $query->paginate(3);
+}
+
+private function getPopularTags()
+{
+    try {
+        return Tag::select('tags.id', 'tags.name', 'tags.slug')
+            ->join('taggables', 'tags.id', '=', 'taggables.tag_id')
+            ->join('posts', 'taggables.taggable_id', '=', 'posts.id')
+            ->where('taggables.taggable_type', Post::class)
+            ->where('posts.type', 'discussion')
+            ->where('posts.status', 'published')
+            ->groupBy('tags.id', 'tags.name', 'tags.slug')
+            ->selectRaw('tags.id, tags.name, tags.slug, COUNT(posts.id) as posts_count')
+            ->orderBy('posts_count', 'desc')
+            ->limit(15)
+            ->get();
+    } catch (\Exception $e) {
+        // Fallback to simple tags without counts
+        return Tag::orderBy('usage_count', 'desc')->limit(15)->get();
+    }
+}
 }

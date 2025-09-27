@@ -27,7 +27,7 @@ class Post extends Model
         'allow_comments',
         'is_approved',
         'slug',
-        'tags',
+        //'tags',
         'mentions',
         'attachments',
         'published_at',
@@ -39,7 +39,7 @@ class Post extends Model
         'allow_comments' => 'boolean',
         'is_approved' => 'boolean',
         'is_reported' => 'boolean',
-        'tags' => 'array',
+        //'tags' => 'array',
         'mentions' => 'array',
         'attachments' => 'array',
         'published_at' => 'datetime',
@@ -145,4 +145,36 @@ public function getRouteKeyName()
 {
     return 'slug';
 }
+
+public function tags()
+{
+    return $this->morphToMany(Tag::class, 'taggable');
+}
+
+
+public function syncTags(array $tagNames): void
+{
+    $tags = Tag::findOrCreateTags($tagNames);
+    
+    // Get current tags to update usage counts
+    $currentTags = $this->tags;
+    
+    // Sync the relationship
+    $this->tags()->sync(collect($tags)->pluck('id'));
+    
+    // Update usage counts
+    foreach ($currentTags as $oldTag) {
+        if (!in_array($oldTag->name, $tagNames)) {
+            $oldTag->decrementUsage();
+        }
+    }
+    
+    foreach ($tags as $newTag) {
+        if (!$currentTags->contains('id', $newTag->id)) {
+            $newTag->incrementUsage();
+        }
+    }
+}
+
+
 }

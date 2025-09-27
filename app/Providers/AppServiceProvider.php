@@ -17,7 +17,7 @@ class AppServiceProvider extends ServiceProvider
 
     public function boot(): void
     {
-        Paginator::useBootstrap();
+        //Paginator::useBootstrap();
         
         Passport::tokensExpireIn(now()->addWeek());
         Passport::refreshTokensExpireIn(now()->addWeek());

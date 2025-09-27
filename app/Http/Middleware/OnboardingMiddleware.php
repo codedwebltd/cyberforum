@@ -15,7 +15,7 @@ class OnboardingMiddleware
     {
         // Check if user is authenticated and onboarding is incomplete
         if (auth()->check() && !auth()->user()->onboarding_completed) {
-            return redirect()->route('onboarding');
+            return redirect()->route('onboarding.index');
         }
 
         return $next($request);

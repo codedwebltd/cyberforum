@@ -349,9 +349,17 @@ img {
                     <i data-lucide="home" class="w-5 h-5"></i>
                     <span class="font-medium">Home</span>
                 </a>
-                <a href="#" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
+                <a href="{{route('discussion.index') }}" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
                     <i data-lucide="message-circle" class="w-5 h-5"></i>
                     <span>Discussions</span>
+                </a>
+                <a href="{{ route('media.index') }}" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
+                    <i data-lucide="image" class="w-5 h-5"></i>
+                    <span>Media</span>
+                </a>
+                <a href="{{ route('security.index') }}" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
+                    <i data-lucide="shield" class="w-5 h-5"></i>
+                    <span>Security</span>
                 </a>
                 <a href="#" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
                     <i data-lucide="calendar" class="w-5 h-5"></i>
@@ -370,15 +378,16 @@ img {
                     <span>Wallet</span>
                     <span class="px-2 py-1 ml-auto text-xs rounded-full bg-accent text-accent-foreground">${{ auth()->check() ? number_format(auth()->user()->wallet->balance,2) : '0.0' }}</span>
                 </a>
+
             </nav>
 
             <!-- Quick Actions -->
             <div class="space-y-3">
               @auth
-    <button class="flex items-center justify-center w-full px-4 py-3 space-x-2 transition-colors rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
+    <a href="{{ route('discussion.create') }}" class="flex items-center justify-center w-full px-4 py-3 space-x-2 transition-colors rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
         <i data-lucide="plus" class="w-4 h-4"></i>
         <span class="font-medium">New Post</span>
-    </button>
+    </a>
 @else
     <a href="{{ route('login') }}" class="flex items-center justify-center w-full px-4 py-3 space-x-2 transition-colors rounded-lg bg-primary text-primary-foreground hover:bg-primary/90">
         <i data-lucide="log-in" class="w-4 h-4"></i>

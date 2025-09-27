@@ -3,7 +3,7 @@
 @section('content')
 
 <main class="p-2 sm:p-4 lg:p-6">
-    <div class="mx-auto max-w-6xl">
+    <div class="mx-auto max-w-7xl">
         @include('session-message.session-message')
         
         <!-- Breadcrumb -->
@@ -19,10 +19,10 @@
         </nav>
 
         <div class="grid grid-cols-1 lg:grid-cols-4 gap-4 lg:gap-6">
-            <!-- Main Content -->
+            <!-- Main Content - FIXED: Removed order classes that caused mobile sidebar-first issue -->
             <div class="lg:col-span-3">
                 <!-- Discussion Header -->
-                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-6">
+                <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 mb-4 lg:mb-6 shadow-lg">
                     <div class="p-4 sm:p-6">
                         <!-- Meta Info with Scrollable Tags -->
                         <div class="mb-4">
@@ -46,22 +46,17 @@
                                 </span>
                             </div>
 
-                            @if($discussion->tags)
-                                @php
-                                    $tags = is_string($discussion->tags) ? json_decode($discussion->tags, true) : $discussion->tags;
-                                @endphp
-                                @if(is_array($tags) && count($tags) > 0)
-                                <div class="overflow-x-auto scrollbar-hide">
-                                    <div class="flex space-x-2 pb-2" style="min-width: max-content;">
-                                        @foreach($tags as $tag)
-                                        <span class="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full whitespace-nowrap">
-                                            #{{ $tag }}
-                                        </span>
-                                        @endforeach
-                                    </div>
-                                </div>
-                                @endif
-                            @endif
+                           @if($discussion->tags && $discussion->tags->count() > 0)
+                        <div class="overflow-x-auto scrollbar-hide">
+                            <div class="flex space-x-2 pb-2" style="min-width: max-content;">
+                                @foreach($discussion->tags as $tag)
+                                <span class="px-3 py-1 text-xs font-medium bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300 rounded-full whitespace-nowrap">
+                                    #{{ $tag->name }}
+                                </span>
+                                @endforeach
+                            </div>
+                        </div>
+                        @endif
                         </div>
 
                         <!-- Beautiful Title -->
@@ -131,12 +126,50 @@
                         </div>
                         @endif
 
-                        <!-- Content with Auto Scroll -->
-                        <div class="content-container max-h-96 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-gray-100 dark:scrollbar-track-gray-800 pr-2">
+                        <!-- Content with Read More -->
+                        <div class="content-container">
                             <div class="prose prose-lg dark:prose-invert max-w-none leading-relaxed text-gray-800 dark:text-gray-200">
-                                {!! nl2br(e($discussion->content)) !!}
+                                <div id="content-preview">
+                                    @php
+                                        $content = $discussion->content;
+                                        $contentLength = strlen($content);
+                                        $midPoint = intval($contentLength / 2);
+                                        $firstHalf = substr($content, 0, $midPoint);
+                                        $secondHalf = substr($content, $midPoint);
+                                    @endphp
+                                    
+                                    {!! nl2br(Str::limit($firstHalf, 250)) !!}
+                                    
+                                    @include('home.discussions.partials.discussion-content-ads', ['position' => 'inline'])
+                                    
+                                    {!! nl2br(Str::limit($secondHalf, 250)) !!}
+                                </div>
+                                <div id="content-full" class="hidden">
+                                    @php
+                                        $fullContent = $discussion->content;
+                                        $words = explode(' ', $fullContent);
+                                        $totalWords = count($words);
+                                        $midPoint = intval($totalWords / 2);
+                                        $firstHalf = implode(' ', array_slice($words, 0, $midPoint));
+                                        $secondHalf = implode(' ', array_slice($words, $midPoint));
+                                    @endphp
+                                    
+                                    {!! nl2br(e($firstHalf)) !!}
+                                    
+                                    @include('home.discussions.partials.discussion-content-ads', ['position' => 'mid'])
+                                    
+                                    {!! nl2br(e($secondHalf)) !!}
+                                </div>
+                                @if(strlen($discussion->content) > 500)
+                                <button id="read-more-btn" onclick="toggleReadMore()" 
+                                        class="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors text-sm font-medium">
+                                    Read More
+                                </button>
+                                @endif
                             </div>
                         </div>
+
+                        @include('home.discussions.partials.discussion-content-ads', ['position' => 'bottom'])
 
                         <!-- Attachments -->
                         @if($discussion->attachments)
@@ -172,45 +205,46 @@
                     </div>
 
                     <!-- Enhanced Engagement Bar -->
-      <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-600/50 border-t border-gray-200 dark:border-gray-700 rounded-b-2xl mb-6">
-    <div class="flex flex-col gap-4">
-        <div class="flex flex-wrap items-center gap-3 sm:gap-6">
-            <button onclick="likeDiscussion('{{ $discussion->slug }}')" 
-                    class="like-discussion-btn flex items-center gap-2 px-3 py-2 rounded-full transition-all transform hover:scale-105 {{ isset($discussion->is_liked_by_user) && $discussion->is_liked_by_user ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} dark:bg-gray-700 dark:text-gray-300 shadow-sm text-sm">
-                <i data-lucide="heart" class="w-4 h-4"></i>
-                <span class="font-semibold" id="likes-count">{{ number_format($discussion->likes_count) }}</span>
-            </button>
-            
-            <div class="flex items-center gap-2 px-3 py-2 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 shadow-sm text-sm">
-                <i data-lucide="message-circle" class="w-4 h-4"></i>
-                <span class="font-semibold" data-comments-count>{{ number_format($discussion->comments_count) }}</span>
-            </div>
-            
-            <div class="flex items-center gap-2 px-3 py-2 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 shadow-sm text-sm">
-                <i data-lucide="eye" class="w-4 h-4"></i>
-                <span class="font-semibold">{{ number_format($discussion->views_count) }}</span>
-            </div>
+                    <div class="px-4 sm:px-6 py-4 bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-700/50 dark:to-gray-600/50 border-t border-gray-200 dark:border-gray-700 rounded-b-2xl">
+                        <div class="flex flex-col gap-4">
+                            <div class="flex flex-wrap items-center gap-3 sm:gap-6">
+                                <button onclick="likeDiscussion('{{ $discussion->slug }}')" 
+                                        class="like-discussion-btn flex items-center gap-2 px-3 py-2 rounded-full transition-all transform hover:scale-105 {{ isset($discussion->is_liked_by_user) && $discussion->is_liked_by_user ? 'bg-red-100 text-red-600 hover:bg-red-200' : 'bg-gray-100 text-gray-600 hover:bg-gray-200' }} dark:bg-gray-700 dark:text-gray-300 shadow-sm text-sm">
+                                    <i data-lucide="heart" class="w-4 h-4"></i>
+                                    <span class="font-semibold" id="likes-count">{{ number_format($discussion->likes_count) }}</span>
+                                </button>
+                                
+                                <div class="flex items-center gap-2 px-3 py-2 rounded-full bg-blue-100 text-blue-600 dark:bg-blue-900/30 dark:text-blue-400 shadow-sm text-sm">
+                                    <i data-lucide="message-circle" class="w-4 h-4"></i>
+                                    <span class="font-semibold" data-comments-count>{{ number_format($discussion->comments_count) }}</span>
+                                </div>
+                                
+                                <div class="flex items-center gap-2 px-3 py-2 rounded-full bg-green-100 text-green-600 dark:bg-green-900/30 dark:text-green-400 shadow-sm text-sm">
+                                    <i data-lucide="eye" class="w-4 h-4"></i>
+                                    <span class="font-semibold">{{ number_format($discussion->views_count) }}</span>
+                                </div>
 
-            <div class="flex items-center gap-2 px-3 py-2 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 shadow-sm text-sm">
-                <i data-lucide="share-2" class="w-4 h-4"></i>
-                <span class="font-semibold" id="shares-count">{{ number_format($discussion->shares_count) }}</span>
-            </div>
-        </div>
+                                <div class="flex items-center gap-2 px-3 py-2 rounded-full bg-purple-100 text-purple-600 dark:bg-purple-900/30 dark:text-purple-400 shadow-sm text-sm">
+                                    <i data-lucide="share-2" class="w-4 h-4"></i>
+                                    <span class="font-semibold" id="shares-count">{{ number_format($discussion->shares_count) }}</span>
+                                </div>
+                            </div>
 
-        <div class="text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-2 rounded-full shadow-sm w-fit">
-            @php
-    $lastActivityDiff = now()->diffInSeconds($discussion->last_activity_at);
-    if ($lastActivityDiff < 60) $lastActivityTimeStr = $lastActivityDiff . 's';
-    elseif ($lastActivityDiff < 3600) $lastActivityTimeStr = floor($lastActivityDiff / 60) . 'm';
-    elseif ($lastActivityDiff < 86400) $lastActivityTimeStr = floor($lastActivityDiff / 3600) . 'h';
-    elseif ($lastActivityDiff < 2592000) $lastActivityTimeStr = floor($lastActivityDiff / 86400) . 'd';
-    elseif ($lastActivityDiff < 31536000) $lastActivityTimeStr = floor($lastActivityDiff / 2592000) . 'mo';
-    else $lastActivityTimeStr = floor($lastActivityDiff / 31536000) . 'y';
-@endphp
-Last activity {{ $lastActivityTimeStr }} ago
-        </div>
-    </div>
-</div>
+                            <div class="text-sm text-gray-500 dark:text-gray-400 bg-white dark:bg-gray-800 px-3 py-2 rounded-full shadow-sm w-fit">
+                                @php
+                                    $lastActivityDiff = now()->diffInSeconds($discussion->last_activity_at);
+                                    if ($lastActivityDiff < 60) $lastActivityTimeStr = $lastActivityDiff . 's';
+                                    elseif ($lastActivityDiff < 3600) $lastActivityTimeStr = floor($lastActivityDiff / 60) . 'm';
+                                    elseif ($lastActivityDiff < 86400) $lastActivityTimeStr = floor($lastActivityDiff / 3600) . 'h';
+                                    elseif ($lastActivityDiff < 2592000) $lastActivityTimeStr = floor($lastActivityDiff / 86400) . 'd';
+                                    elseif ($lastActivityDiff < 31536000) $lastActivityTimeStr = floor($lastActivityDiff / 2592000) . 'mo';
+                                    else $lastActivityTimeStr = floor($lastActivityDiff / 31536000) . 'y';
+                                @endphp
+                                Last activity {{ $lastActivityTimeStr }} ago
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
                 <!-- Comments Section with Scrollable Container -->
                 <div class="bg-white dark:bg-gray-800 rounded-2xl border border-gray-200 dark:border-gray-700 shadow-lg">
@@ -303,7 +337,7 @@ Last activity {{ $lastActivityTimeStr }} ago
                 </div>
             </div>
 
-            <!-- Enhanced Sidebar -->
+            <!-- Right Sidebar - FIXED: Removed order classes that caused mobile sidebar-first issue -->
             <div class="lg:col-span-1">
                 <!-- Author Card -->
                 <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-6 shadow-lg">
@@ -327,20 +361,61 @@ Last activity {{ $lastActivityTimeStr }} ago
                         
                         <div class="grid grid-cols-2 gap-4 mt-4">
                             <div class="text-center p-3 bg-blue-100 dark:bg-blue-900/30 rounded-xl">
-                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">0</div>
+                                <div class="text-2xl font-bold text-blue-600 dark:text-blue-400">{{ $discussion->user->posts_count ?? 0 }}</div>
                                 <div class="text-xs text-blue-600 dark:text-blue-400 font-medium">Posts</div>
                             </div>
                             <div class="text-center p-3 bg-purple-100 dark:bg-purple-900/30 rounded-xl">
-                                <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">0</div>
-                                <div class="text-xs text-purple-600 dark:text-purple-400 font-medium">Following</div>
+                                <div class="text-2xl font-bold text-purple-600 dark:text-purple-400">{{ $discussion->user->followers_count ?? 0 }}</div>
+                                <div class="text-xs text-purple-600 dark:text-purple-400 font-medium">Followers</div>
                             </div>
                         </div>
                     </div>
                 </div>
 
+                <!-- Discussion Stats -->
+                <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-6 shadow-lg">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="trending-up" class="w-5 h-5 text-green-600"></i>
+                        Discussion Stats
+                    </h3>
+                    <div class="space-y-4">
+                        <div class="flex items-center justify-between p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="eye" class="w-4 h-4 text-blue-600"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Views</span>
+                            </div>
+                            <span class="text-lg font-bold text-blue-600">{{ number_format($discussion->views_count) }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-red-50 dark:bg-red-900/20 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="heart" class="w-4 h-4 text-red-600"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Likes</span>
+                            </div>
+                            <span class="text-lg font-bold text-red-600">{{ number_format($discussion->likes_count) }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-green-50 dark:bg-green-900/20 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="message-circle" class="w-4 h-4 text-green-600"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Comments</span>
+                            </div>
+                            <span class="text-lg font-bold text-green-600">{{ number_format($discussion->comments_count) }}</span>
+                        </div>
+                        
+                        <div class="flex items-center justify-between p-3 bg-purple-50 dark:bg-purple-900/20 rounded-lg">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="share-2" class="w-4 h-4 text-purple-600"></i>
+                                <span class="text-sm font-medium text-gray-700 dark:text-gray-300">Shares</span>
+                            </div>
+                            <span class="text-lg font-bold text-purple-600">{{ number_format($discussion->shares_count) }}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <!-- Related Discussions -->
-                @if($relatedDiscussions->count() > 0)
-                <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 shadow-lg">
+                @if(isset($relatedDiscussions) && $relatedDiscussions->count() > 0)
+                <div class="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-700 rounded-2xl border border-gray-200 dark:border-gray-700 p-6 mb-6 shadow-lg">
                     <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
                         <i data-lucide="layers" class="w-5 h-5 text-purple-600"></i>
                         Related Discussions
@@ -377,10 +452,37 @@ Last activity {{ $lastActivityTimeStr }} ago
                     </div>
                 </div>
                 @endif
+
+                <!-- Discussion Guidelines -->
+                <div class="bg-gradient-to-br from-blue-50 to-purple-50 dark:from-blue-900/20 dark:to-purple-900/20 rounded-2xl border border-blue-200 dark:border-blue-800 p-6 shadow-lg">
+                    <h3 class="text-lg font-bold text-gray-900 dark:text-white mb-4 flex items-center gap-2">
+                        <i data-lucide="lightbulb" class="w-5 h-5 text-blue-600"></i>
+                        Discussion Guidelines
+                    </h3>
+                    <ul class="space-y-3 text-sm text-gray-600 dark:text-gray-400">
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"></i>
+                            Be respectful and constructive in comments
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"></i>
+                            Stay on topic and contribute meaningfully
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"></i>
+                            Use the like button to show appreciation
+                        </li>
+                        <li class="flex items-start gap-2">
+                            <i data-lucide="check" class="w-4 h-4 text-green-500 mt-0.5 flex-shrink-0"></i>
+                            Share with others who might be interested
+                        </li>
+                    </ul>
+                </div>
             </div>
         </div>
     </div>
 </main>
+
 <script>
 // Store discussion slug for API calls
 const currentDiscussionSlug = '{{ $discussion->slug }}';
@@ -795,6 +897,21 @@ function shareDiscussion(slug) {
     });
 }
 
+function toggleReadMore() {
+    const preview = document.getElementById('content-preview');
+    const full = document.getElementById('content-full');
+    const btn = document.getElementById('read-more-btn');
+    
+    if (preview.classList.contains('hidden')) {
+        preview.classList.remove('hidden');
+        full.classList.add('hidden');
+        btn.textContent = 'Read More';
+    } else {
+        preview.classList.add('hidden');
+        full.classList.remove('hidden');
+        btn.textContent = 'Read Less';
+    }
+}
 
 // Toast notification function
 function showToast(message, type = 'success') {

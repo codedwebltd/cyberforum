@@ -6,11 +6,13 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Home\HomeController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\Media\MediaController;
 use App\Http\Controllers\Money\WalletController;
 use App\Http\Controllers\Setting\SettingController;
 use App\Http\Controllers\Security\SecurityLogController;
 use App\Http\Controllers\Discussion\DiscussionController;
 use App\Http\Controllers\Notification\NotificationController;
+use App\Http\Controllers\Discussion\DiscussionActionController;
 
 /*
 |--------------------------------------------------------------------------
@@ -108,7 +110,7 @@ Route::middleware(['auth', 'onboarding.check'])->group(function() {
 
     // Discussion Management System
 Route::prefix('discussion')->name('discussion.')->group(function () {
-    Route::get('/', [DiscussionController::class, 'index'])->name('index');
+    Route::get('/index', [DiscussionController::class, 'index'])->name('index');
     Route::get('/{slug}', [DiscussionController::class, 'show'])->name('show');
     Route::post('/{slug}/like', [DiscussionController::class, 'like'])->name('like');
     Route::post('/{slug}/share', [DiscussionController::class, 'share'])->name('share');
@@ -121,15 +123,40 @@ Route::prefix('discussion')->name('discussion.')->group(function () {
     Route::post('/cache-failed-like', [DiscussionController::class, 'cacheFailedLike'])->name('cache-failed-like');
     Route::post('/comment/reply', [DiscussionController::class, 'storeReplyByPostId'])->name('comment.reply');
     Route::post('/comment/main', [DiscussionController::class, 'storeMainComment'])->name('comment.main');
-    Route::get('/{slug}/comments/load-more', [DiscussionController::class, 'loadMoreCommentsForShow'])
-    ->name('comments.show.load-more');
+    Route::get('/{slug}/comments/load-more', [DiscussionController::class, 'loadMoreCommentsForShow'])->name('comments.show.load-more');
     Route::post('/{slug}/share', [DiscussionController::class, 'share'])->name('share');
     Route::post('/{slug}/comment-show', [DiscussionController::class, 'storeCommentForShow'])->name('comment.show.store');
     Route::post('/{slug}/reply-show', [DiscussionController::class, 'storeReplyForShow'])->name('reply.show.store');
+
+   // New Discussion Creation Route (renamed to avoid slug conflict)
+    Route::get('/new/create', [DiscussionActionController::class, 'create'])->name('create');
+    Route::post('/new/store', [DiscussionActionController::class, 'store'])->name('store');
+    Route::post('/new/upload-image', [DiscussionActionController::class, 'uploadImage'])->name('upload-image');
+    Route::get('/new/media', [DiscussionActionController::class, 'getUserMedia'])->name('media');
+
+
 });
 
 Route::get('/discussions/filter', [DiscussionController::class, 'filterDiscussions'])->name('discussions.filter');
 Route::get('/discussions/load-more', [HomeController::class, 'loadMoreDiscussions'])->name('discussions.load-more');
+
+
+
+
+// Media Management System
+Route::prefix('media')->name('media.')->middleware('auth')->group(function () {
+    Route::get('/', [MediaController::class, 'index'])->name('index');
+    Route::get('/user-media', [MediaController::class, 'getUserMedia'])->name('user.media');
+    Route::post('/upload', [MediaController::class, 'upload'])->name('upload');
+    Route::delete('/delete', [MediaController::class, 'delete'])->name('delete');
+    Route::get('/search', [MediaController::class, 'search'])->name('search');
+    Route::get('/file-info', [MediaController::class, 'getFileInfo'])->name('file.info');
+    Route::get('/storage-info', [MediaController::class, 'getStorageInfo'])->name('storage.info');
+// 1. Add this route to your web.php (TEMPORARILY)
+Route::get('/debug-b2-response', [MediaController::class, 'debugB2Response'])->middleware('auth');
+
+
+});
 
     // Future Feature Routes (Commented for reference)
     // Route::get('/home/discussions', [DiscussionController::class, 'index'])->name('discussions');
@@ -145,3 +172,4 @@ Route::get('/discussions/load-more', [HomeController::class, 'loadMoreDiscussion
 Route::redirect('/notifications', '/home/notifications')->middleware(['auth', 'onboarding.check']);
 Route::redirect('/profile', '/home/profile')->middleware(['auth', 'onboarding.check']);
 Route::redirect('/dashboard', '/home')->middleware(['auth', 'onboarding.check'])->name('dashboard');
+Route::redirect('/discussion', '/discussion/index')->middleware(['auth', 'onboarding.check']);

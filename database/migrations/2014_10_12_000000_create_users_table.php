@@ -28,6 +28,7 @@ return new class extends Migration
             $table->string('website')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->enum('gender', ['male', 'female', 'other', 'prefer_not_to_say'])->nullable();
+            $table->integer('capped_file_size')->default(1024);//in mb 
 
             // Community metrics
             $table->bigInteger('points')->default(0);

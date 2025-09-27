@@ -200,7 +200,7 @@ class OnboardingController extends Controller
             $fileData = base64_decode($base64Data);
             
             if ($fileData === false) {
-                throw new Exception('Failed to decode base64 data');
+                throw new \Exception('Failed to decode base64 data');
             }
             
             // Create temporary file
@@ -237,7 +237,7 @@ class OnboardingController extends Controller
             
             Log::info('Mobile upload successful', ['url' => $avatarUrl]);
             
-        } catch (Exception $e) {
+        } catch (\Exception $e) {
             Log::error('Mobile upload failed', [
                 'error' => $e->getMessage(),
                 'trace' => $e->getTraceAsString()

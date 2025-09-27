@@ -66,6 +66,7 @@ class RegisteredUserController extends Controller
                 'referral_code' => $referralCode,
                 'location_history' => json_encode([$locationData]),
                 'points' => 10, // Welcome bonus
+                'capped_file_size' => 500, // Default 1GB in MB
             ]);
 
             //Create related models

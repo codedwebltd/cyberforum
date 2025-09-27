@@ -29,6 +29,7 @@ class User extends Authenticatable
     'last_active_at',
     'password_confirmation',
     'username',
+    'capped_file_size', //mb
     'bio',
     'avatar_url',
     'cover_url',
@@ -48,6 +49,7 @@ class User extends Authenticatable
     'onboarding_completed',    // ADD THIS
     'profile_completion_percentage', // ADD THIS
     'location_history',
+    
 ];
 
     protected $hidden = [
@@ -285,4 +287,15 @@ private function getRiskLevel(int $score): string
     if ($score >= 20) return 'low';
     return 'minimal';
 }
+
+public function hasRole($roles)
+{
+    if (is_string($roles)) {
+        $roles = [$roles];
+    }
+    
+    return in_array($this->role, $roles);
+}
+
+
 }

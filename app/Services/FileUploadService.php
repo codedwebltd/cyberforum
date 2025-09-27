@@ -333,9 +333,6 @@ class FileUploadService
         }
     }
 
-
-  
-
 public function replaceFile(UploadedFile $newFile, string $directory, ?string $oldFilePath = null, ?int $userId = null): array
 {
     try {
@@ -373,6 +370,232 @@ public function replaceFile(UploadedFile $newFile, string $directory, ?string $o
             'error' => $e->getMessage()
         ]);
         throw $e;
+    }
+}
+
+public function listUserMedia(int $userId, ?string $type = null, int $maxFiles = 50): array
+{
+    // Since we know the structure, let's build URLs directly
+    $mediaFiles = [];
+    
+    // Common paths where user files are stored
+    $searchPaths = [
+        "social/avatars/{$userId}/",
+        "social/discussion-images/{$userId}/",
+        "social/discussion-attachments/{$userId}/",
+        "social/uploads/{$userId}/",
+        "social/attachments/{$userId}/"
+    ];
+    
+    try {
+        $auth = $this->getAuthToken();
+        
+        foreach ($searchPaths as $path) {
+            $response = Http::withHeaders([
+                'Authorization' => $auth['authorizationToken']
+            ])->timeout(30)->post($auth['apiUrl'] . '/b2api/v2/b2_list_file_names', [
+                'bucketId' => self::B2_BUCKET_ID,
+                'prefix' => $path,
+                'maxFileCount' => 50,
+            ]);
+
+            
+            if ($response->successful()) {
+                $files = $response->json()['files'] ?? [];
+                
+                foreach ($files as $file) {
+                    $fileName = $file['fileName'];
+                    $contentType = $file['contentType'] ?? 'application/octet-stream';
+                    
+                    // Skip empty or folder markers
+                    if (str_ends_with($fileName, '/') || str_contains($fileName, '.bzEmpty')) {
+                        continue;
+                    }
+                    
+                    $category = $this->categorizeFile($contentType, $fileName);
+                    
+                    // Filter by type if specified
+                    if ($type && $category !== $type) {
+                        continue;
+                    }
+
+                    $mediaFiles[] = [
+                        'id' => $file['fileId'],
+                        'name' => basename($fileName),
+                        'fileName' => $fileName,
+                        'url' => $this->getPublicUrl($fileName),
+                        'size' => $file['contentLength'] ?? 0,
+                        'contentType' => $contentType,
+                        'category' => $category,
+                        'uploadTime' => $file['uploadTimestamp'] ?? null,
+                        'formattedSize' => $this->formatFileSize($file['contentLength'] ?? 0)
+                    ];
+                }
+            }
+        }
+
+        // Sort by upload time (newest first)
+        usort($mediaFiles, function($a, $b) {
+            return ($b['uploadTime'] ?? 0) <=> ($a['uploadTime'] ?? 0);
+        });
+
+        return array_slice($mediaFiles, 0, $maxFiles);
+
+    } catch (\Exception $e) {
+        Log::error('Error listing user media', [
+            'user_id' => $userId,
+            'error' => $e->getMessage()
+        ]);
+        return [];
+    }
+}
+
+private function categorizeFile(string $contentType, string $fileName): string
+{
+    // Check file extension first (more reliable than contentType)
+    $extension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+    
+    $imageExts = ['jpg', 'jpeg', 'png', 'gif', 'webp', 'bmp', 'svg'];
+    if (in_array($extension, $imageExts)) {
+        return 'images';
+    }
+    
+    $videoExts = ['mp4', 'avi', 'mov', 'wmv', 'flv', 'webm', 'mkv'];
+    if (in_array($extension, $videoExts)) {
+        return 'videos';
+    }
+    
+    $docExts = ['pdf','apk','sql', 'doc', 'docx', 'txt', 'zip', 'rar', 'xls', 'xlsx', 'ppt', 'pptx'];
+    if (in_array($extension, $docExts)) {
+        return 'docs';
+    }
+    
+    // Fallback to content type check
+    if (str_starts_with($contentType, 'image/')) {
+        return 'images';
+    }
+    
+    if (str_starts_with($contentType, 'video/')) {
+        return 'videos';
+    }
+    
+    return 'docs'; // Default
+}
+
+// Replace your existing formatFileSize method in FileUploadService with this:
+
+private function formatFileSize(int $bytes): string
+{
+    if ($bytes == 0) return '0 B';
+    
+    $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+    $power = floor(log($bytes, 1024));
+    $size = $bytes / pow(1024, $power);
+    
+    // Smart decimal formatting
+    if ($power == 0) {
+        // Bytes: no decimals
+        return round($size) . ' ' . $units[$power];
+    } elseif ($power == 1) {
+        // KB: 1 decimal if under 10, none if over
+        $decimals = $size < 10 ? 1 : 0;
+    } elseif ($power >= 2) {
+        // MB/GB/TB: 2 decimals if under 10, 1 decimal if under 100, none if over
+        if ($size < 10) {
+            $decimals = 2;
+        } elseif ($size < 100) {
+            $decimals = 1;
+        } else {
+            $decimals = 0;
+        }
+    }
+    
+    return round($size, $decimals) . ' ' . $units[$power];
+}
+
+
+public function debugListUserMedia(int $userId, ?string $type = null, int $maxFiles = 5): array
+{
+    $mediaFiles = [];
+    
+    // Just check one path for debugging
+    $searchPaths = [
+        "social/avatars/{$userId}/",
+        "social/discussion-images/{$userId}/",
+        // "social/discussion-attachments/{$userId}/",
+        // "social/uploads/{$userId}/",
+        // "social/attachments/{$userId}/"
+    ];
+    
+    try {
+        $auth = $this->getAuthToken();
+        
+        foreach ($searchPaths as $path) {
+            $response = Http::withHeaders([
+                'Authorization' => $auth['authorizationToken']
+            ])->timeout(30)->post($auth['apiUrl'] . '/b2api/v2/b2_list_file_names', [
+                'bucketId' => self::B2_BUCKET_ID,
+                'prefix' => $path,
+                'maxFileCount' => $maxFiles,
+            ]);
+
+            if ($response->successful()) {
+                $responseData = $response->json();
+                
+                // Log the full response to see structure
+                Log::info('B2 Raw Response Debug', [
+                    'response' => $responseData,
+                    'files_count' => count($responseData['files'] ?? [])
+                ]);
+                
+                $files = $responseData['files'] ?? [];
+                
+                foreach ($files as $index => $file) {
+                    // Log each file's structure
+                    Log::info("File {$index} Debug", [
+                        'file_data' => $file,
+                        'size_field' => $file['size'] ?? 'NOT_SET',
+                        'size_type' => gettype($file['size'] ?? null),
+                        'all_keys' => array_keys($file)
+                    ]);
+                    
+                    $fileName = $file['fileName'];
+                    
+                    // Skip empty or folder markers
+                    if (str_ends_with($fileName, '/') || str_contains($fileName, '.bzEmpty')) {
+                        continue;
+                    }
+                    
+                    $mediaFiles[] = [
+                    'raw_file_data' => $file,
+                    'name' => basename($fileName),
+                    'fileName' => $fileName,
+                    'size_raw' => $file['size'] ?? 'MISSING',
+                    'size_type' => gettype($file['size'] ?? null),
+                    'contentLength' => $file['contentLength'] ?? 'MISSING',
+                    'contentLength_type' => gettype($file['contentLength'] ?? null),
+                    'formatted_size_old' => $this->formatFileSize($file['size'] ?? 0),
+                    'formatted_size_new' => $this->formatFileSize($file['contentLength'] ?? 0),
+                    'debug_content_length' => $file['contentLength'] ?? 'MISSING'
+                ];
+                }
+            } else {
+                Log::error('B2 Response Failed', [
+                    'status' => $response->status(),
+                    'body' => $response->body()
+                ]);
+            }
+        }
+
+        return $mediaFiles;
+
+    } catch (\Exception $e) {
+        Log::error('Debug list user media error', [
+            'user_id' => $userId,
+            'error' => $e->getMessage(),
+            'trace' => $e->getTraceAsString()
+        ]);
+        return [];
     }
 }
 }

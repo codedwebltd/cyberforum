@@ -38,7 +38,7 @@ return new class extends Migration
 
             // SEO and discovery
             $table->string('slug')->unique()->nullable();
-            $table->json('tags')->nullable();
+            // $table->json('tags')->nullable();
             $table->json('mentions')->nullable(); // @username mentions
             $table->json('attachments')->nullable(); // file URLs from B2
 
