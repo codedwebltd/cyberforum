@@ -9,12 +9,13 @@ use Illuminate\View\View;
 
 class WalletController extends Controller
 {
-    public function index(): View
-    {
-        $wallet = Auth::user()->wallet ?? Auth::user()->wallet()->create();
-        
-        return view('home.money.index', compact('wallet'));
-    }
+public function index(): View
+{
+    $wallet = Auth::user()->wallet ?? Auth::user()->wallet()->create();
+    $recentTransactions = Auth::user()->recentTransactions(5);
+    
+    return view('home.money.index', compact('wallet', 'recentTransactions'));
+}
     
     public function transactions()
     {

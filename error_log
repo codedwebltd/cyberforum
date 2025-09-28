@@ -45,3 +45,15 @@ Stack trace:
 #11 /home/palestine/public_html/vendor/laravel/framework/src/Illuminate/Foundation/Console/Kernel.php(199): Illuminate\Foundation\Console\Kernel->bootstrap()
 #12 Command line code(1): Illuminate\Foundation\Console\Kernel->handle(Object(Symfony\Component\Console\Input\ArgvInput), Object(Symfony\Component\Console\Output\ConsoleOutput))
 #13 {main} in /home/palestine/public_html/app/Providers/AppServiceProvider.php on line 14
+[28-Sep-2025 08:48:24 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:48:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:49:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:50:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:51:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:52:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:53:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:54:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:55:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:56:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:57:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321
+[28-Sep-2025 08:58:35 UTC] PHP Parse error:  Unclosed '{' on line 15 in /home/palestine/public_html/app/Models/User.php on line 321

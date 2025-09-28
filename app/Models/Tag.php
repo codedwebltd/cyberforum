@@ -28,10 +28,10 @@ class Tag extends Model
         return $this->morphedByMany(Post::class, 'taggable');
     }
 
-    // public function events(): MorphToMany
-    // {
-    //     return $this->morphedByMany(Event::class, 'taggable');
-    // }
+    public function events(): MorphToMany
+    {
+        return $this->morphedByMany(Events::class, 'taggable');
+    }
 
     // Add more models as needed
     // public function marketplace(): MorphToMany

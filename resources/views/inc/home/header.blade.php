@@ -361,7 +361,7 @@ img {
                     <i data-lucide="shield" class="w-5 h-5"></i>
                     <span>Security</span>
                 </a>
-                <a href="#" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
+                <a href="{{ route('events.index') }}" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
                     <i data-lucide="calendar" class="w-5 h-5"></i>
                     <span>Events</span>
                 </a>
@@ -369,10 +369,19 @@ img {
                     <i data-lucide="shopping-bag" class="w-5 h-5"></i>
                     <span>Marketplace</span>
                 </a>
-                <a href="#" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
+                <a href="{{ route('members.index') }}" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
                     <i data-lucide="users" class="w-5 h-5"></i>
                     <span>Members</span>
                 </a>
+
+                <a href="{{ route('members.messages') }}" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
+                    <div class="relative">
+                        <i data-lucide="mail" class="w-5 h-5"></i>
+                        <span class="absolute -top-1 -right-1 w-4 h-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">3</span>
+                    </div>
+                    <span>Messages</span>
+                </a>
+
                 <a href="{{ route('money.index') }}" class="flex items-center px-4 py-3 space-x-3 transition-colors rounded-lg hover:bg-muted">
                     <i data-lucide="wallet" class="w-5 h-5"></i>
                     <span>Wallet</span>

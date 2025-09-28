@@ -298,4 +298,29 @@ public function hasRole($roles)
 }
 
 
+/**
+ * User has many transactions
+ */
+public function transactions()
+{
+    return $this->hasMany(Transaction::class)->latest();
+}
+
+/**
+ * Get recent transactions for wallet display
+ */
+public function recentTransactions(int $limit = 5)
+{
+    return $this->transactions()
+        ->completed()
+        ->limit($limit)
+        ->get();
+
+
+}
+
+public function events()
+{
+    return $this->hasMany(Events::class)->latest();
+}
 }

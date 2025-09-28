@@ -13,6 +13,8 @@ use App\Http\Controllers\Security\SecurityLogController;
 use App\Http\Controllers\Discussion\DiscussionController;
 use App\Http\Controllers\Notification\NotificationController;
 use App\Http\Controllers\Discussion\DiscussionActionController;
+use App\Http\Controllers\Events\EventsController;
+use App\Http\Controllers\Members\MembersController;
 
 /*
 |--------------------------------------------------------------------------
@@ -156,6 +158,27 @@ Route::prefix('media')->name('media.')->middleware('auth')->group(function () {
 Route::get('/debug-b2-response', [MediaController::class, 'debugB2Response'])->middleware('auth');
 
 
+});
+
+
+Route::prefix('events')->name('events.')->group(function () {
+    Route::get('/', [EventsController::class, 'index'])->name('index');
+    Route::get('/create', [EventsController::class, 'create'])->name('create');
+    Route::post('/', [EventsController::class, 'store'])->name('store');
+    Route::get('/tags/search', [EventsController::class, 'searchTags'])->name('tags.search');
+    Route::get('/{event:slug}', [EventsController::class, 'show'])->name('show');
+    Route::get('/{event:slug}/edit', [EventsController::class, 'edit'])->name('edit');
+    Route::put('/{event:slug}', [EventsController::class, 'update'])->name('update');
+    Route::delete('/{event:slug}', [EventsController::class, 'destroy'])->name('destroy');
+});
+
+
+Route::prefix('members')->name('members.')->group(function () {
+    Route::get('/', [MembersController::class, 'index'])->name('index');
+    Route::get('/search', [MembersController::class, 'search'])->name('search');
+    Route::get('/messages', [MembersController::class, 'messages'])->name('messages');
+    Route::get('/chat/{user}', [MembersController::class, 'chat'])->name('chat');
+    Route::get('/{member}/details', [MembersController::class, 'details'])->name('details');
 });
 
     // Future Feature Routes (Commented for reference)
