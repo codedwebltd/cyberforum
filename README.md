@@ -213,3 +213,260 @@ resources/views/
 - [ ] Implement real-time notification updates
 - [ ] Add notification preferences system
 - [ ] Create admin notification management
+
+
+
+# Deploying Laravel to Fly.io
+
+Complete guide for deploying a Laravel application to Fly.io with PostgreSQL (Supabase) and Redis (Upstash).
+
+## Prerequisites
+
+- Fly.io account (free tier available)
+- Supabase PostgreSQL database (Europe region)
+- Upstash Redis (Europe region)
+- Git repository with your Laravel project
+- Credit card for Fly.io verification (no charges on free tier)
+
+## Step 1: Install Fly CLI
+
+**Windows (PowerShell):**
+```powershell
+powershell -Command "iwr https://fly.io/install.ps1 -useb | iex"
+```
+
+**Close and reopen your terminal** after installation.
+
+Verify installation:
+```powershell
+flyctl version
+```
+
+## Step 2: Create Dockerfile
+
+Create a file named `Dockerfile` in your project root:
+```dockerfile
+FROM php:8.4-cli-alpine
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    curl \
+    libpng-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    postgresql-dev \
+    oniguruma-dev \
+    nodejs \
+    npm
+
+# Install PHP extensions
+RUN docker-php-ext-install pdo pdo_pgsql mbstring exif pcntl bcmath gd
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Set working directory
+WORKDIR /var/www/html
+
+# Copy composer files
+COPY composer.json composer.lock ./
+
+# Install PHP dependencies
+RUN composer install --no-dev --no-scripts --no-autoloader --prefer-dist
+
+# Copy application code
+COPY . .
+
+# Generate optimized autoload files
+RUN composer dump-autoload --optimize
+
+# Build frontend assets
+RUN npm install && npm run build
+
+# Set permissions
+RUN chown -R www-data:www-data storage bootstrap/cache
+
+# Expose port 8080
+EXPOSE 8080
+
+# Start application
+CMD php artisan config:cache && \
+    php artisan route:cache && \
+    php artisan view:cache && \
+    php artisan serve --host=0.0.0.0 --port=8080
+```
+
+## Step 3: Login to Fly.io
+```powershell
+flyctl auth login
+```
+
+This opens your browser for authentication.
+
+## Step 4: Launch Application
+
+Navigate to your project directory:
+```powershell
+cd path/to/your/project
+```
+
+Launch the app (without deploying yet):
+```powershell
+flyctl launch --region fra --no-deploy
+```
+
+**Important:** When prompted:
+- Choose your app name (e.g., `cyberforum`)
+- PostgreSQL database? Type `n` (you have Supabase)
+- Redis? Type `n` (you have Upstash)
+
+This creates a `fly.toml` configuration file.
+
+## Step 5: Set Environment Variables (Secrets)
+
+Set all your environment variables as Fly.io secrets:
+```powershell
+flyctl secrets set APP_NAME="YourAppName" APP_KEY="base64:your-app-key-here" APP_ENV=production APP_DEBUG=false APP_URL="https://your-app.fly.dev" DB_CONNECTION=pgsql DB_HOST="aws-1-eu-west-1.pooler.supabase.com" DB_PORT=5432 DB_DATABASE=postgres DB_USERNAME="postgres.your-username" DB_PASSWORD="your-password" REDIS_URL="your-redis-url" CACHE_DRIVER=redis SESSION_DRIVER=redis QUEUE_CONNECTION=redis MAIL_MAILER=smtp MAIL_HOST="smtp-relay.brevo.com" MAIL_PORT=587 MAIL_USERNAME="your-mail-username" MAIL_PASSWORD="your-mail-password" MAIL_ENCRYPTION=tls MAIL_FROM_ADDRESS="your-email@domain.com"
+```
+
+**Replace with your actual credentials from `.env` file.**
+
+## Step 6: Deploy
+```powershell
+flyctl deploy
+```
+
+This will:
+- Build your Docker image (3-5 minutes)
+- Push to Fly.io registry
+- Create and start machines
+- Deploy your app
+
+## Step 7: Run Database Migrations
+
+Connect to your app via SSH:
+```powershell
+flyctl ssh console
+```
+
+Inside the container, run migrations:
+```bash
+php artisan migrate --force
+exit
+```
+
+## Step 8: Verify Deployment
+
+Check app status:
+```powershell
+flyctl status
+```
+
+View logs:
+```powershell
+flyctl logs
+```
+
+Open your app:
+```powershell
+flyctl open
+```
+
+Or visit: `https://your-app-name.fly.dev`
+
+## Important Configuration Notes
+
+### Fly.io Free Tier Limits
+- 3 shared-cpu-1x VMs (256MB RAM each)
+- 3GB persistent storage
+- 160GB outbound data transfer/month
+
+### Database Setup
+- **Local Development:** Use Docker/Sail
+- **Production (Fly.io):** Use external Supabase PostgreSQL
+- Region: `aws-1-eu-west-1` (Europe/Frankfurt)
+
+### Redis Setup
+- **Production:** Use external Upstash Redis
+- Region: Europe (Frankfurt or nearby)
+
+### Environment Differences
+- **Local:** `APP_ENV=local`, `APP_DEBUG=true`
+- **Production:** `APP_ENV=production`, `APP_DEBUG=false`
+
+## Useful Commands
+```powershell
+# Check app status
+flyctl status
+
+# View logs (real-time)
+flyctl logs
+
+# SSH into container
+flyctl ssh console
+
+# Restart app
+flyctl apps restart your-app-name
+
+# Scale app (changes pricing)
+flyctl scale vm shared-cpu-1x --memory 512
+
+# Update secrets
+flyctl secrets set KEY=value
+
+# List secrets
+flyctl secrets list
+
+# Deploy after changes
+flyctl deploy
+
+# Destroy app
+flyctl apps destroy your-app-name
+```
+
+## Troubleshooting
+
+### Database Connection Error
+Verify secrets are correct:
+```powershell
+flyctl secrets list
+```
+
+Update if needed:
+```powershell
+flyctl secrets set DB_HOST="correct-host" DB_USERNAME="correct-user" DB_PASSWORD="correct-password"
+```
+
+### App Won't Start
+Check logs:
+```powershell
+flyctl logs
+```
+
+### Wrong Region
+Check regions:
+```powershell
+flyctl regions list
+```
+
+Set preferred regions:
+```powershell
+flyctl regions set fra
+```
+
+## Security Notes
+
+- Never commit `.env` file to Git
+- Rotate passwords after exposure
+- Use strong, unique passwords
+- Enable 2FA on all services
+- Regularly update dependencies
+
+## Cost Management
+
+- Monitor usage: https://fly.io/dashboard
+- Set billing alerts
+- Stay within free tier limits
+- Scale down unused apps

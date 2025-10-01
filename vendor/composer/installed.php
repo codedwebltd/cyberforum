@@ -1,9 +1,9 @@
 <?php return array(
     'root' => array(
         'name' => 'laravel/laravel',
-        'pretty_version' => '1.0.0+no-version-set',
-        'version' => '1.0.0.0',
-        'reference' => NULL,
+        'pretty_version' => 'dev-main',
+        'version' => 'dev-main',
+        'reference' => 'bb8dcd7ff0a5c69b53d78de71356f9a52e23c0ef',
         'type' => 'project',
         'install_path' => __DIR__ . '/../../',
         'aliases' => array(),
@@ -156,6 +156,15 @@
             'install_path' => __DIR__ . '/../firebase/php-jwt',
             'aliases' => array(),
             'dev_requirement' => false,
+        ),
+        'fly-apps/dockerfile-laravel' => array(
+            'pretty_version' => '1.0.9',
+            'version' => '1.0.9.0',
+            'reference' => 'bc8caa10472d6ce6622e1f77db04180f0a155f8f',
+            'type' => 'project',
+            'install_path' => __DIR__ . '/../fly-apps/dockerfile-laravel',
+            'aliases' => array(),
+            'dev_requirement' => true,
         ),
         'fruitcake/php-cors' => array(
             'pretty_version' => 'v1.3.0',
@@ -470,9 +479,9 @@
             'dev_requirement' => false,
         ),
         'laravel/laravel' => array(
-            'pretty_version' => '1.0.0+no-version-set',
-            'version' => '1.0.0.0',
-            'reference' => NULL,
+            'pretty_version' => 'dev-main',
+            'version' => 'dev-main',
+            'reference' => 'bb8dcd7ff0a5c69b53d78de71356f9a52e23c0ef',
             'type' => 'project',
             'install_path' => __DIR__ . '/../../',
             'aliases' => array(),
